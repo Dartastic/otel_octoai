@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_octoai_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_octoai';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class OctoAiResult {
+  /// Creates a result.
   const OctoAiResult({
     this.surface,
     this.endpointName,
@@ -79,8 +80,13 @@ class OctoAiResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class OctoAiCallResult<T> {
+  /// Creates a call result.
   const OctoAiCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final OctoAiResult? result;
 }
@@ -111,7 +117,7 @@ Future<T> tracedOctoAi<T>({
   final span = _tracer().startSpan(
     'octoai $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
@@ -119,116 +125,117 @@ Future<T> tracedOctoAi<T>({
       final res = r.result!;
       final extras = <Attribute<Object>>[];
       if (res.surface != null) {
-        extras.add(OTel.attributeString('octoai.surface', res.surface!));
+        extras.add(OTelAPI.attributeString('octoai.surface', res.surface!));
       }
       if (res.endpointName != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'octoai.endpoint.name',
           res.endpointName!,
         ));
       }
       if (res.modelName != null) {
-        extras.add(OTel.attributeString('octoai.model.name', res.modelName!));
+        extras
+            .add(OTelAPI.attributeString('octoai.model.name', res.modelName!));
       }
       if (res.modelFamily != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'octoai.model.family',
           res.modelFamily!,
         ));
       }
       if (res.quantization != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'octoai.model.quantization',
           res.quantization!,
         ));
       }
       if (res.gpu != null) {
-        extras.add(OTel.attributeString('octoai.gpu', res.gpu!));
+        extras.add(OTelAPI.attributeString('octoai.gpu', res.gpu!));
       }
       if (res.streamed != null) {
-        extras.add(OTel.attributeBool('octoai.streamed', res.streamed!));
+        extras.add(OTelAPI.attributeBool('octoai.streamed', res.streamed!));
       }
       if (res.promptTokens != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'octoai.usage.prompt_tokens',
           res.promptTokens!,
         ));
       }
       if (res.completionTokens != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'octoai.usage.completion_tokens',
           res.completionTokens!,
         ));
       }
       if (res.totalTokens != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'octoai.usage.total_tokens',
           res.totalTokens!,
         ));
       }
       if (res.tokensPerSecond != null) {
-        extras.add(OTel.attributeDouble(
+        extras.add(OTelAPI.attributeDouble(
           'octoai.usage.tokens_per_second',
           res.tokensPerSecond!,
         ));
       }
       if (res.timeToFirstTokenMs != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'octoai.usage.ttft_ms',
           res.timeToFirstTokenMs!,
         ));
       }
       if (res.imageSteps != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'octoai.image.steps',
           res.imageSteps!,
         ));
       }
       if (res.imageCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'octoai.image.count',
           res.imageCount!,
         ));
       }
       if (res.imageWidth != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'octoai.image.width',
           res.imageWidth!,
         ));
       }
       if (res.imageHeight != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'octoai.image.height',
           res.imageHeight!,
         ));
       }
       if (res.audioSeconds != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'octoai.audio.seconds',
           res.audioSeconds!,
         ));
       }
       if (res.creditsUsed != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'octoai.credits.used',
           res.creditsUsed!,
         ));
       }
       if (res.errorCode != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'octoai.error.code',
           res.errorCode!,
         ));
         span.setStatus(SpanStatusCode.Error, 'OctoAI ${res.errorCode}');
       }
       if (res.errorMessage != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'octoai.error.message',
           res.errorMessage!,
         ));
       }
       if (res.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           res.statusCode!,
         ));
@@ -236,13 +243,13 @@ Future<T> tracedOctoAi<T>({
           span.setStatus(SpanStatusCode.Error, 'OctoAI HTTP ${res.statusCode}');
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
